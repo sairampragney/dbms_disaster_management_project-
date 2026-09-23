@@ -58,6 +58,7 @@ describe('Firestore Security Rules - Users Collection', () => {
         state: 'Telangana',
         pincode: '500072',
         isActive: true,
+        createdAt: new Date(),
       });
 
       await setDoc(doc(db, 'users', citizenB.uid), {
@@ -71,6 +72,7 @@ describe('Firestore Security Rules - Users Collection', () => {
         state: 'Telangana',
         pincode: '500072',
         isActive: true,
+        createdAt: new Date(),
       });
 
       await setDoc(doc(db, 'users', adminUser.uid), {
@@ -84,6 +86,7 @@ describe('Firestore Security Rules - Users Collection', () => {
         state: 'Telangana',
         pincode: '500001',
         isActive: true,
+        createdAt: new Date(),
       });
     });
   });

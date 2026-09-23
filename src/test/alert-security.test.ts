@@ -148,6 +148,10 @@ describe('Firestore Security Rules - Alerts Collection', () => {
     await assertSucceeds(
       updateDoc(doc(adminDb, 'alerts', publicAlertId), {
         status: 'RESOLVED',
+        isPublic: true,
+        severity: 'HIGH',
+        createdBy: adminUid,
+        title: 'Heavy Rainfall Warning - Hyderabad',
       })
     );
   });

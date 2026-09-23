@@ -13,6 +13,11 @@ import { ProfilePage } from './pages/ProfilePage';
 import { AlertsPage } from './pages/AlertsPage';
 import { AlertDetailPage } from './pages/AlertDetailPage';
 import { AdminAlertsPage } from './pages/admin/AdminAlertsPage';
+import { ReportIncidentPage } from './pages/ReportIncidentPage';
+import { MyIncidentsPage } from './pages/MyIncidentsPage';
+import { IncidentDetailPage } from './pages/IncidentDetailPage';
+import { AdminIncidentsPage } from './pages/admin/AdminIncidentsPage';
+import { AdminIncidentDetailPage } from './pages/admin/AdminIncidentDetailPage';
 
 const PlaceholderPage = ({ title }: { title: string }) => (
   <div className="max-w-4xl mx-auto px-4 py-16 text-center space-y-4">
@@ -63,10 +68,26 @@ export const AppRouter: React.FC = () => {
               }
             />
             <Route
+              path="incidents/report"
+              element={
+                <ProtectedRoute>
+                  <ReportIncidentPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="my-incidents"
               element={
                 <ProtectedRoute>
-                  <PlaceholderPage title="My Incident Reports" />
+                  <MyIncidentsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="incidents/:incidentId"
+              element={
+                <ProtectedRoute>
+                  <IncidentDetailPage />
                 </ProtectedRoute>
               }
             />
@@ -103,6 +124,22 @@ export const AppRouter: React.FC = () => {
               element={
                 <RoleRoute allowedRoles={['ADMIN']}>
                   <AdminAlertsPage />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="admin/incidents"
+              element={
+                <RoleRoute allowedRoles={['ADMIN']}>
+                  <AdminIncidentsPage />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="admin/incidents/:incidentId"
+              element={
+                <RoleRoute allowedRoles={['ADMIN']}>
+                  <AdminIncidentDetailPage />
                 </RoleRoute>
               }
             />
