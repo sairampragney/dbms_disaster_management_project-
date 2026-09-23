@@ -10,6 +10,9 @@ import { RegisterPage } from './pages/RegisterPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { AlertsPage } from './pages/AlertsPage';
+import { AlertDetailPage } from './pages/AlertDetailPage';
+import { AdminAlertsPage } from './pages/admin/AdminAlertsPage';
 
 const PlaceholderPage = ({ title }: { title: string }) => (
   <div className="max-w-4xl mx-auto px-4 py-16 text-center space-y-4">
@@ -34,7 +37,8 @@ export const AppRouter: React.FC = () => {
           <Route path="/" element={<MainLayout />}>
             <Route index element={<HomePage />} />
             <Route path="about" element={<PlaceholderPage title="About Platform" />} />
-            <Route path="alerts" element={<PlaceholderPage title="Public Disaster Alerts" />} />
+            <Route path="alerts" element={<AlertsPage />} />
+            <Route path="alerts/:alertId" element={<AlertDetailPage />} />
             <Route path="safe-locations" element={<PlaceholderPage title="Safe Locations & Shelters" />} />
             <Route path="emergency" element={<PlaceholderPage title="Emergency Assistance Hub" />} />
             <Route path="login" element={<LoginPage />} />
@@ -95,10 +99,18 @@ export const AppRouter: React.FC = () => {
 
             {/* Admin Protected Routes */}
             <Route
+              path="admin/alerts"
+              element={
+                <RoleRoute allowedRoles={['ADMIN']}>
+                  <AdminAlertsPage />
+                </RoleRoute>
+              }
+            />
+            <Route
               path="admin/*"
               element={
                 <RoleRoute allowedRoles={['ADMIN']}>
-                  <PlaceholderPage title="Admin Control Center" />
+                  <AdminAlertsPage />
                 </RoleRoute>
               }
             />

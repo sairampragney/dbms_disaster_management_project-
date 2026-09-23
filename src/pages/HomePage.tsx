@@ -1,8 +1,28 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { PhoneCall, AlertTriangle, MapPin, HeartHandshake, ShieldCheck, ArrowRight } from 'lucide-react';
+import { PhoneCall, AlertTriangle, MapPin, HeartHandshake, ShieldCheck, ArrowRight, RefreshCw } from 'lucide-react';
+import { getPublicAlerts } from '../services/alertService';
+import { Alert } from '../types/alert';
+import { AlertBadge } from '../components/alerts/AlertBadge';
 
 export const HomePage: React.FC = () => {
+  const [activeAlerts, setActiveAlerts] = useState<Alert[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadTopAlerts = async () => {
+      try {
+        const data = await getPublicAlerts({ status: 'ACTIVE' }, 4);
+        setActiveAlerts(data);
+      } catch (err) {
+        console.error('Failed to load active alerts for homepage:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadTopAlerts();
+  }, []);
+
   return (
     <div className="space-y-12">
       {/* Hero Section */}
@@ -60,6 +80,54 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
+      {/* Active Disaster Alerts Summary Feed */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between mb-6 border-b border-slate-200 pb-3">
+          <div>
+            <h2 className="text-xl font-bold text-slate-900">Active Disaster Advisories</h2>
+            <p className="text-xs text-slate-500">Live emergency advisories issued for Indian states and cities</p>
+          </div>
+          <Link to="/alerts" className="text-xs font-bold text-sky-600 hover:underline flex items-center gap-1">
+            <span>View All Alerts</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        {loading ? (
+          <div className="p-8 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
+            <RefreshCw className="w-4 h-4 animate-spin text-sky-600" />
+            <span>Fetching active advisories...</span>
+          </div>
+        ) : activeAlerts.length === 0 ? (
+          <div className="p-6 bg-slate-50 border border-slate-200 rounded-xl text-center text-xs text-slate-500">
+            No active critical advisories reported currently. Stay safe and monitor local emergency guidelines.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {activeAlerts.map((alert) => (
+              <div key={alert.id} className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs flex flex-col justify-between space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <AlertBadge severity={alert.severity} size="sm" />
+                  <span className="text-[10px] text-slate-400">{alert.affectedArea}, {alert.city}</span>
+                </div>
+                <h3 className="font-bold text-slate-900 text-sm">
+                  <Link to={`/alerts/${alert.id}`} className="hover:text-sky-600">
+                    {alert.title}
+                  </Link>
+                </h3>
+                <p className="text-xs text-slate-600 line-clamp-2">{alert.description}</p>
+                <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                  <span className="text-slate-400">Status: {alert.status}</span>
+                  <Link to={`/alerts/${alert.id}`} className="font-bold text-sky-600 hover:underline">
+                    Read Action & Details →
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
       {/* Primary Disaster Categories */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8">
@@ -81,48 +149,6 @@ export const HomePage: React.FC = () => {
               <span className="text-xs font-bold">{item.title}</span>
             </div>
           ))}
-        </div>
-      </section>
-
-      {/* Platform Features Workflow */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-10 shadow-sm">
-          <div className="text-center max-w-2xl mx-auto mb-10">
-            <h2 className="text-2xl font-bold text-slate-900">How The Platform Works</h2>
-            <p className="text-sm text-slate-600 mt-1">A transparent end-to-end community safety ecosystem</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="flex flex-col items-center text-center space-y-3">
-              <div className="w-12 h-12 bg-sky-100 text-sky-600 rounded-xl flex items-center justify-center font-bold text-lg">
-                1
-              </div>
-              <h3 className="font-bold text-slate-900 text-base">Alert & Incident Reporting</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Citizens view verified disaster alerts and report localized emergency incidents directly with location details.
-              </p>
-            </div>
-
-            <div className="flex flex-col items-center text-center space-y-3">
-              <div className="w-12 h-12 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center font-bold text-lg">
-                2
-              </div>
-              <h3 className="font-bold text-slate-900 text-base">Emergency Assistance Tracking</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Citizens submit urgent requests for food, water, medical aid, or evacuation and track real-time fulfillment status.
-              </p>
-            </div>
-
-            <div className="flex flex-col items-center text-center space-y-3">
-              <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center font-bold text-lg">
-                3
-              </div>
-              <h3 className="font-bold text-slate-900 text-base">Volunteer & Shelter Dispatch</h3>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Verified community volunteers accept relief assignments while safe locations update live shelter capacities.
-              </p>
-            </div>
-          </div>
         </div>
       </section>
 
