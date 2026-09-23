@@ -1,8 +1,21 @@
 import React from 'react';
-import { Link, Outlet } from 'react-router-dom';
-import { ShieldAlert, PhoneCall, AlertTriangle, MapPin, HeartHandshake, Info } from 'lucide-react';
+import { Link, Outlet, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { ShieldAlert, PhoneCall, AlertTriangle, MapPin, HeartHandshake, Info, LogOut, User, LayoutDashboard } from 'lucide-react';
 
 export const MainLayout: React.FC = () => {
+  const { user, userProfile, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/');
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
       {/* Top Banner Notice */}
@@ -46,7 +59,7 @@ export const MainLayout: React.FC = () => {
             </Link>
           </nav>
 
-          {/* Action CTAs */}
+          {/* Action CTAs & Auth Controls */}
           <div className="flex items-center gap-3">
             <a
               href="tel:112"
@@ -55,19 +68,48 @@ export const MainLayout: React.FC = () => {
               <PhoneCall className="w-4 h-4" />
               <span>Call 112</span>
             </a>
-            <div className="hidden sm:flex items-center gap-2 border-l border-slate-200 pl-3">
-              <Link
-                to="/login"
-                className="text-xs sm:text-sm font-medium text-slate-700 hover:text-sky-600 px-3 py-2 rounded-md hover:bg-slate-100 transition-colors"
-              >
-                Log In
-              </Link>
-              <Link
-                to="/register"
-                className="text-xs sm:text-sm font-medium bg-sky-600 hover:bg-sky-700 text-white px-3.5 py-2 rounded-lg shadow-sm transition-colors"
-              >
-                Register
-              </Link>
+
+            <div className="flex items-center gap-2 border-l border-slate-200 pl-3">
+              {user ? (
+                <div className="flex items-center gap-2">
+                  <Link
+                    to="/dashboard"
+                    className="text-xs sm:text-sm font-medium text-slate-700 hover:text-sky-600 px-2.5 py-1.5 rounded-md hover:bg-slate-100 transition-colors flex items-center gap-1"
+                  >
+                    <LayoutDashboard className="w-4 h-4 text-sky-600" />
+                    <span className="hidden sm:inline">Dashboard</span>
+                  </Link>
+                  <Link
+                    to="/profile"
+                    className="text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-800 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
+                  >
+                    <User className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">{userProfile?.fullName.split(' ')[0] || 'Profile'}</span>
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    title="Log Out"
+                    className="text-xs font-medium text-slate-500 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <div className="hidden sm:flex items-center gap-2">
+                  <Link
+                    to="/login"
+                    className="text-xs sm:text-sm font-medium text-slate-700 hover:text-sky-600 px-3 py-2 rounded-md hover:bg-slate-100 transition-colors"
+                  >
+                    Log In
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="text-xs sm:text-sm font-medium bg-sky-600 hover:bg-sky-700 text-white px-3.5 py-2 rounded-lg shadow-sm transition-colors"
+                  >
+                    Register
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </div>
