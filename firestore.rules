@@ -1,0 +1,9 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Basic Phase 1 placeholder rule - strict access control will be implemented in Phase 3
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
