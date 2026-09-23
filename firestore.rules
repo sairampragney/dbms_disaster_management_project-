@@ -63,37 +63,25 @@ service cloud.firestore {
 
     // --- ALERTS COLLECTION SECURITY ---
     match /alerts/{alertId} {
-      // Public users, citizens, and volunteers can read alerts that are public
-      // Admins can read all alerts
       allow read: if (resource != null && resource.data.get('isPublic', true) == true) || isAdmin();
-
-      // Only active Admins can create alerts
       allow create: if isAdmin();
-
-      // Only active Admins can update alerts
       allow update: if isAdmin();
-
-      // Deleting alerts is restricted to Admins
       allow delete: if isAdmin();
     }
 
 
     // --- INCIDENTS COLLECTION SECURITY ---
     match /incidents/{incidentId} {
-      // Citizens can read their own incident reports; Admins and Volunteers can read all
       allow read: if isSignedIn() && (
         (resource != null && isOwner(resource.data.reporterId)) ||
         isAdmin() ||
         isVolunteer()
       );
 
-      // Citizens can create an incident report assigned to their UID with initial status REPORTED
       allow create: if isActiveUser() &&
         request.resource.data.reporterId == request.auth.uid &&
         request.resource.data.status == 'REPORTED';
 
-      // Pre-verification citizen edits: Citizens can edit permitted reporting fields only while status is REPORTED
-      // Admins can update status, verification metadata, and resolution notes
       allow update: if (
         isOwner(resource.data.reporterId) &&
         isActiveUser() &&
@@ -108,24 +96,50 @@ service cloud.firestore {
         ])
       ) || isAdmin();
 
-      // Only Admins can delete incident records
+      allow delete: if isAdmin();
+    }
+
+
+    // --- EMERGENCY REQUESTS COLLECTION SECURITY ---
+    match /emergencyRequests/{requestId} {
+      // Requester, assigned volunteer, or admin can read emergency requests
+      allow read: if isSignedIn() && (
+        (resource != null && isOwner(resource.data.requesterId)) ||
+        (resource != null && resource.data.assignedVolunteerId == request.auth.uid) ||
+        isAdmin()
+      );
+
+      // Active citizen can create an emergency request bound to their UID with initial status PENDING
+      allow create: if isActiveUser() &&
+        request.resource.data.requesterId == request.auth.uid &&
+        request.resource.data.status == 'PENDING' &&
+        request.resource.data.assignedVolunteerId == null &&
+        request.resource.data.resolvedAt == null &&
+        request.resource.data.resolutionNotes == null;
+
+      // Citizen can cancel their own request if status is PENDING or ACKNOWLEDGED
+      // They cannot alter requesterId, assignedVolunteerId, or resolution metadata
+      // Admins have full authorization to acknowledge, assign, respond, and resolve
+      allow update: if (
+        isOwner(resource.data.requesterId) &&
+        isActiveUser() &&
+        request.resource.data.status == 'CANCELLED' &&
+        (resource.data.status == 'PENDING' || resource.data.status == 'ACKNOWLEDGED') &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+          'requesterId',
+          'assignedVolunteerId',
+          'resolvedAt',
+          'resolutionNotes',
+          'createdAt'
+        ])
+      ) || isAdmin();
+
+      // Deleting emergency request documents is restricted to Admins
       allow delete: if isAdmin();
     }
 
 
     // --- PLACEHOLDER RESTRICTIVE RULES FOR FUTURE COLLECTIONS ---
-
-    match /emergencyRequests/{requestId} {
-      allow read: if isSignedIn() && (isOwner(resource.data.requesterId) || isAdmin() || isVolunteer());
-      allow create: if isActiveUser() && request.resource.data.requesterId == request.auth.uid;
-      allow update: if (
-        isOwner(resource.data.requesterId) &&
-        isActiveUser() &&
-        resource.data.status == 'PENDING' &&
-        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'assignedVolunteerId'])
-      ) || isVolunteer() || isAdmin();
-      allow delete: if isAdmin();
-    }
 
     match /safeLocations/{locationId} {
       allow read: if true;

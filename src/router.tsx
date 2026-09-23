@@ -18,6 +18,11 @@ import { MyIncidentsPage } from './pages/MyIncidentsPage';
 import { IncidentDetailPage } from './pages/IncidentDetailPage';
 import { AdminIncidentsPage } from './pages/admin/AdminIncidentsPage';
 import { AdminIncidentDetailPage } from './pages/admin/AdminIncidentDetailPage';
+import { CreateEmergencyRequestPage } from './pages/CreateEmergencyRequestPage';
+import { MyEmergencyRequestsPage } from './pages/MyEmergencyRequestsPage';
+import { EmergencyRequestDetailPage } from './pages/EmergencyRequestDetailPage';
+import { AdminEmergencyRequestsPage } from './pages/admin/AdminEmergencyRequestsPage';
+import { AdminEmergencyRequestDetailPage } from './pages/admin/AdminEmergencyRequestDetailPage';
 
 const PlaceholderPage = ({ title }: { title: string }) => (
   <div className="max-w-4xl mx-auto px-4 py-16 text-center space-y-4">
@@ -45,7 +50,7 @@ export const AppRouter: React.FC = () => {
             <Route path="alerts" element={<AlertsPage />} />
             <Route path="alerts/:alertId" element={<AlertDetailPage />} />
             <Route path="safe-locations" element={<PlaceholderPage title="Safe Locations & Shelters" />} />
-            <Route path="emergency" element={<PlaceholderPage title="Emergency Assistance Hub" />} />
+            <Route path="emergency" element={<CreateEmergencyRequestPage />} />
             <Route path="login" element={<LoginPage />} />
             <Route path="register" element={<RegisterPage />} />
             <Route path="forgot-password" element={<ForgotPasswordPage />} />
@@ -91,14 +96,41 @@ export const AppRouter: React.FC = () => {
                 </ProtectedRoute>
               }
             />
+
+            {/* Emergency Requests Citizen Routes */}
+            <Route
+              path="emergency-requests/new"
+              element={
+                <ProtectedRoute>
+                  <CreateEmergencyRequestPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="my-emergency-requests"
+              element={
+                <ProtectedRoute>
+                  <MyEmergencyRequestsPage />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="my-requests"
               element={
                 <ProtectedRoute>
-                  <PlaceholderPage title="My Emergency Requests" />
+                  <MyEmergencyRequestsPage />
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="emergency-requests/:requestId"
+              element={
+                <ProtectedRoute>
+                  <EmergencyRequestDetailPage />
+                </ProtectedRoute>
+              }
+            />
+
             <Route
               path="notifications"
               element={
@@ -140,6 +172,22 @@ export const AppRouter: React.FC = () => {
               element={
                 <RoleRoute allowedRoles={['ADMIN']}>
                   <AdminIncidentDetailPage />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="admin/emergency-requests"
+              element={
+                <RoleRoute allowedRoles={['ADMIN']}>
+                  <AdminEmergencyRequestsPage />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="admin/emergency-requests/:requestId"
+              element={
+                <RoleRoute allowedRoles={['ADMIN']}>
+                  <AdminEmergencyRequestDetailPage />
                 </RoleRoute>
               }
             />
