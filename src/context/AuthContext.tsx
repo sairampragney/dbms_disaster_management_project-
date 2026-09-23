@@ -7,13 +7,18 @@ import {
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
-import { UserProfile, AuthStateStatus } from '../types/auth';
+import { UserProfile, AuthStateStatus, UserRole } from '../types/auth';
 
 interface AuthContextType {
   user: FirebaseUser | null;
   userProfile: UserProfile | null;
   status: AuthStateStatus;
   error: string | null;
+  role: UserRole | null;
+  isAuthenticated: boolean;
+  isAdmin: boolean;
+  isVolunteer: boolean;
+  isCitizen: boolean;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -33,9 +38,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const docSnap = await getDoc(userRef);
 
       if (docSnap.exists()) {
-        setUserProfile(docSnap.data() as UserProfile);
+        const profile = docSnap.data() as UserProfile;
+        setUserProfile(profile);
+
+        if (profile.isActive === false) {
+          setStatus('INACTIVE');
+          setError('Your account has been deactivated. Please contact support.');
+          return;
+        }
+        setStatus('AUTHENTICATED');
       } else {
-        // Fallback profile if Firestore doc creation was delayed
+        // Controlled recovery path: default to CITIZEN profile if user doc is missing
         const fallbackProfile: UserProfile = {
           uid: firebaseUser.uid,
           fullName: firebaseUser.displayName || 'Citizen',
@@ -52,10 +65,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
         await setDoc(userRef, fallbackProfile);
         setUserProfile(fallbackProfile);
+        setStatus('AUTHENTICATED');
       }
     } catch (err) {
       console.error('Error fetching user profile:', err);
       setError('Failed to load user profile');
+      setStatus('ERROR');
     }
   };
 
@@ -64,11 +79,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (firebaseUser) {
         setUser(firebaseUser);
         await fetchUserProfile(firebaseUser);
-        setStatus('AUTHENTICATED');
       } else {
         setUser(null);
         setUserProfile(null);
         setStatus('UNAUTHENTICATED');
+        setError(null);
       }
     }, (err) => {
       console.error('Auth state listener error:', err);
@@ -84,6 +99,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
     setUserProfile(null);
     setStatus('UNAUTHENTICATED');
+    setError(null);
   };
 
   const resetPassword = async (email: string) => {
@@ -96,8 +112,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const role = userProfile?.role || null;
+  const isAuthenticated = status === 'AUTHENTICATED' && !!user;
+  const isAdmin = isAuthenticated && role === 'ADMIN';
+  const isVolunteer = isAuthenticated && role === 'VOLUNTEER';
+  const isCitizen = isAuthenticated && (role === 'CITIZEN' || !role);
+
   return (
-    <AuthContext.Provider value={{ user, userProfile, status, error, logout, resetPassword, refreshProfile }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        userProfile,
+        status,
+        error,
+        role,
+        isAuthenticated,
+        isAdmin,
+        isVolunteer,
+        isCitizen,
+        logout,
+        resetPassword,
+        refreshProfile,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

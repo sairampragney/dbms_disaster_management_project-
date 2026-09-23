@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { RoleRoute } from './components/auth/RoleRoute';
 import { MainLayout } from './components/layout/MainLayout';
 import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
@@ -40,7 +41,7 @@ export const AppRouter: React.FC = () => {
             <Route path="register" element={<RegisterPage />} />
             <Route path="forgot-password" element={<ForgotPasswordPage />} />
 
-            {/* Authenticated Protected Routes */}
+            {/* Authenticated Citizen / General Routes */}
             <Route
               path="dashboard"
               element={
@@ -81,22 +82,27 @@ export const AppRouter: React.FC = () => {
                 </ProtectedRoute>
               }
             />
+
+            {/* Volunteer Protected Routes */}
             <Route
               path="volunteer"
               element={
-                <ProtectedRoute>
+                <RoleRoute allowedRoles={['VOLUNTEER', 'ADMIN']}>
                   <PlaceholderPage title="Volunteer Portal" />
-                </ProtectedRoute>
+                </RoleRoute>
               }
             />
+
+            {/* Admin Protected Routes */}
             <Route
               path="admin/*"
               element={
-                <ProtectedRoute>
+                <RoleRoute allowedRoles={['ADMIN']}>
                   <PlaceholderPage title="Admin Control Center" />
-                </ProtectedRoute>
+                </RoleRoute>
               }
             />
+
             <Route path="*" element={<PlaceholderPage title="Page Not Found (404)" />} />
           </Route>
         </Routes>

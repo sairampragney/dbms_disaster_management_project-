@@ -17,4 +17,4 @@ export interface UserProfile {
   updatedAt: Timestamp | Date;
 }
 
-export type AuthStateStatus = 'INITIALIZING' | 'AUTHENTICATED' | 'UNAUTHENTICATED' | 'ERROR';
+export type AuthStateStatus = 'INITIALIZING' | 'AUTHENTICATED' | 'UNAUTHENTICATED' | 'INACTIVE' | 'ERROR';
