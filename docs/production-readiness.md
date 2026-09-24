@@ -62,9 +62,20 @@ This document details the production-readiness status for the **Disaster Alert &
 
 ---
 
+## Phase 12 — Firebase Production Deployment
+
+- [x] **Deployment Documentation**: Created `docs/deployment.md` documenting manual Firebase CLI deployment workflow (`firebase deploy --only firestore,hosting`).
+- [x] **Firebase Configuration Verification**: Verified `.firebaserc` and `firebase.json` configured for project `disaster-management-syst-ca22d`.
+- [x] **Firestore Security Rules & Indexes**: Verified production `firestore.rules` and `firestore.indexes.json` match emulated security model.
+- [x] **Production Bundle**: Built optimized production bundle in `dist/` (`npm run build`).
+- [x] **Hosting SPA Rewrite**: Verified local hosting emulator serving deep SPA routes (`/alerts`, `/admin/dashboard`) returning status 200 via `/index.html` rewrite.
+
+---
+
 ## Final Verification Summary
 
 - **Total Test Cases**: 99 Vitest test cases across 14 test suites passing 100% cleanly against the local Firestore Emulator Suite (`--fileParallelism=false`).
 - **Production Build**: Verified via `npm run build`.
 - **Firebase Project Target**: `disaster-management-syst-ca22d`.
-- **Release Status**: Release candidate validated and ready for Phase 12 Firebase Production Deployment.
+- **Firebase Hosting URL**: `https://disaster-management-syst-ca22d.web.app`
+- **Release Status**: Phase 12 Production Deployment configured and verified.
