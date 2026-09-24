@@ -1,0 +1,247 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- HELPER FUNCTIONS ---
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function hasProfile() {
+      return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function isActiveUser() {
+      return isSignedIn() && (!hasProfile() || getUserData().get('isActive', true) == true);
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function getUserRole() {
+      return hasProfile() ? getUserData().get('role', 'CITIZEN') : 'CITIZEN';
+    }
+
+    function isAdmin() {
+      return isSignedIn() && getUserRole() == 'ADMIN';
+    }
+
+    function isVolunteer() {
+      return isSignedIn() && (getUserRole() == 'VOLUNTEER' || getUserRole() == 'ADMIN');
+    }
+
+    function isApprovedVolunteer() {
+      return isVolunteer() &&
+        exists(/databases/$(database)/documents/volunteers/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/volunteers/$(request.auth.uid)).data.get('verificationStatus', 'PENDING') == 'APPROVED' &&
+        get(/databases/$(database)/documents/volunteers/$(request.auth.uid)).data.get('isActive', false) == true;
+    }
+
+
+    // --- USERS COLLECTION SECURITY ---
+    match /users/{userId} {
+      allow read: if isSignedIn() && (isOwner(userId) || isAdmin());
+
+      allow create: if isSignedIn() &&
+        isOwner(userId) &&
+        request.resource.data.role == 'CITIZEN' &&
+        request.resource.data.uid == request.auth.uid &&
+        request.resource.data.get('isActive', true) == true;
+
+      allow update: if (
+        isOwner(userId) &&
+        isActiveUser() &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'uid', 'isActive'])
+      ) || isAdmin();
+
+      allow delete: if isAdmin();
+    }
+
+
+    // --- ALERTS COLLECTION SECURITY ---
+    match /alerts/{alertId} {
+      allow read: if (resource != null && resource.data.get('isPublic', true) == true) || isAdmin();
+      allow create: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+
+    // --- INCIDENTS COLLECTION SECURITY ---
+    match /incidents/{incidentId} {
+      allow read: if isSignedIn() && (
+        (resource != null && isOwner(resource.data.reporterId)) ||
+        isAdmin() ||
+        isApprovedVolunteer()
+      );
+
+      allow create: if isActiveUser() &&
+        request.resource.data.reporterId == request.auth.uid &&
+        request.resource.data.status == 'REPORTED';
+
+      allow update: if (
+        isOwner(resource.data.reporterId) &&
+        isActiveUser() &&
+        resource.data.status == 'REPORTED' &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+          'reporterId',
+          'status',
+          'verifiedBy',
+          'verifiedAt',
+          'resolutionNotes',
+          'resolvedAt'
+        ])
+      ) || isAdmin();
+
+      allow delete: if isAdmin();
+    }
+
+
+    // --- EMERGENCY REQUESTS COLLECTION SECURITY ---
+    match /emergencyRequests/{requestId} {
+      allow read: if isSignedIn() && (
+        (resource != null && isOwner(resource.data.requesterId)) ||
+        (resource != null && resource.data.assignedVolunteerId == request.auth.uid) ||
+        isAdmin()
+      );
+
+      allow create: if isActiveUser() &&
+        request.resource.data.requesterId == request.auth.uid &&
+        request.resource.data.status == 'PENDING' &&
+        request.resource.data.assignedVolunteerId == null &&
+        request.resource.data.resolvedAt == null &&
+        request.resource.data.resolutionNotes == null;
+
+      allow update: if (
+        isOwner(resource.data.requesterId) &&
+        isActiveUser() &&
+        request.resource.data.status == 'CANCELLED' &&
+        (resource.data.status == 'PENDING' || resource.data.status == 'ACKNOWLEDGED') &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+          'requesterId',
+          'assignedVolunteerId',
+          'resolvedAt',
+          'resolutionNotes',
+          'createdAt'
+        ])
+      ) || (
+        isApprovedVolunteer() &&
+        resource.data.assignedVolunteerId == request.auth.uid &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+          'requesterId',
+          'assignedVolunteerId',
+          'resolutionNotes',
+          'resolvedAt',
+          'createdAt'
+        ])
+      ) || isAdmin();
+
+      allow delete: if isAdmin();
+    }
+
+
+    // --- SAFE LOCATIONS COLLECTION SECURITY ---
+    match /safeLocations/{locationId} {
+      allow read: if (resource != null && resource.data.get('isActive', true) == true) || isAdmin();
+
+      allow create: if isAdmin() &&
+        request.resource.data.createdBy == request.auth.uid;
+
+      allow update: if isAdmin() &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['createdBy', 'createdAt']);
+
+      allow delete: if isAdmin();
+    }
+
+
+    // --- VOLUNTEERS COLLECTION SECURITY ---
+    match /volunteers/{userId} {
+      allow read: if isSignedIn() && (isOwner(userId) || isAdmin());
+
+      allow create: if isActiveUser() &&
+        isOwner(userId) &&
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.verificationStatus == 'PENDING' &&
+        request.resource.data.isActive == false &&
+        request.resource.data.approvedBy == null &&
+        request.resource.data.approvedAt == null;
+
+      allow update: if (
+        isOwner(userId) &&
+        isActiveUser() &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+          'userId',
+          'verificationStatus',
+          'isActive',
+          'approvedBy',
+          'approvedAt',
+          'createdAt'
+        ])
+      ) || isAdmin();
+
+      allow delete: if isAdmin();
+    }
+
+
+    // --- RESPONSES COLLECTION SECURITY ---
+    match /responses/{responseId} {
+      allow read: if isSignedIn() && (isOwner(resource.data.volunteerId) || isAdmin());
+      allow create: if isApprovedVolunteer() && request.resource.data.volunteerId == request.auth.uid;
+      allow update: if isApprovedVolunteer() && isOwner(resource.data.volunteerId);
+      allow delete: if isAdmin();
+    }
+
+
+    // --- NOTIFICATIONS COLLECTION SECURITY ---
+    match /notifications/{notificationId} {
+      // Recipient or admin can read notifications
+      allow read: if isSignedIn() && (
+        (resource != null && resource.data.recipientId == request.auth.uid) ||
+        isAdmin()
+      );
+
+      // Only Admins can create targeted notifications
+      allow create: if isAdmin() &&
+        request.resource.data.createdBy == request.auth.uid;
+
+      // Recipient can update only read-state fields (isRead, readAt) on their own notification
+      // Admins have full update authorization
+      allow update: if (
+        isSignedIn() &&
+        resource.data.recipientId == request.auth.uid &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+          'recipientId',
+          'title',
+          'message',
+          'notificationType',
+          'relatedEntityType',
+          'relatedEntityId',
+          'priority',
+          'createdBy',
+          'createdAt'
+        ])
+      ) || isAdmin();
+
+      // Only Admins can delete notifications
+      allow delete: if isAdmin();
+    }
+
+
+    // --- AUDIT LOGS COLLECTION SECURITY ---
+    match /auditLogs/{logId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
