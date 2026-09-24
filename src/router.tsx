@@ -34,6 +34,10 @@ import { VolunteerTasksPage } from './pages/VolunteerTasksPage';
 import { VolunteerTaskDetailPage } from './pages/VolunteerTaskDetailPage';
 import { AdminVolunteersPage } from './pages/admin/AdminVolunteersPage';
 import { AdminVolunteerDetailPage } from './pages/admin/AdminVolunteerDetailPage';
+import { NotificationsPage } from './pages/NotificationsPage';
+import { NotificationDetailPage } from './pages/NotificationDetailPage';
+import { AdminNotificationsPage } from './pages/admin/AdminNotificationsPage';
+import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
 
 const PlaceholderPage = ({ title }: { title: string }) => (
   <div className="max-w-4xl mx-auto px-4 py-16 text-center space-y-4">
@@ -146,6 +150,24 @@ export const AppRouter: React.FC = () => {
               }
             />
 
+            {/* Notifications Routes */}
+            <Route
+              path="notifications"
+              element={
+                <ProtectedRoute>
+                  <NotificationsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="notifications/:notificationId"
+              element={
+                <ProtectedRoute>
+                  <NotificationDetailPage />
+                </ProtectedRoute>
+              }
+            />
+
             {/* Citizen Volunteer Application Route */}
             <Route
               path="volunteer/apply"
@@ -198,16 +220,23 @@ export const AppRouter: React.FC = () => {
               }
             />
 
+            {/* Admin Protected Routes */}
             <Route
-              path="notifications"
+              path="admin"
               element={
-                <ProtectedRoute>
-                  <PlaceholderPage title="In-App Notifications" />
-                </ProtectedRoute>
+                <RoleRoute allowedRoles={['ADMIN']}>
+                  <AdminDashboardPage />
+                </RoleRoute>
               }
             />
-
-            {/* Admin Protected Routes */}
+            <Route
+              path="admin/dashboard"
+              element={
+                <RoleRoute allowedRoles={['ADMIN']}>
+                  <AdminDashboardPage />
+                </RoleRoute>
+              }
+            />
             <Route
               path="admin/alerts"
               element={
@@ -281,10 +310,18 @@ export const AppRouter: React.FC = () => {
               }
             />
             <Route
+              path="admin/notifications"
+              element={
+                <RoleRoute allowedRoles={['ADMIN']}>
+                  <AdminNotificationsPage />
+                </RoleRoute>
+              }
+            />
+            <Route
               path="admin/*"
               element={
                 <RoleRoute allowedRoles={['ADMIN']}>
-                  <AdminAlertsPage />
+                  <AdminDashboardPage />
                 </RoleRoute>
               }
             />

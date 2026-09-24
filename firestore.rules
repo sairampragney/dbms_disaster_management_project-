@@ -105,7 +105,6 @@ service cloud.firestore {
 
     // --- EMERGENCY REQUESTS COLLECTION SECURITY ---
     match /emergencyRequests/{requestId} {
-      // Requester, assigned approved volunteer, or admin can read
       allow read: if isSignedIn() && (
         (resource != null && isOwner(resource.data.requesterId)) ||
         (resource != null && resource.data.assignedVolunteerId == request.auth.uid) ||
@@ -119,7 +118,6 @@ service cloud.firestore {
         request.resource.data.resolvedAt == null &&
         request.resource.data.resolutionNotes == null;
 
-      // Citizen requester cancellation OR assigned approved volunteer status update (without changing assignedVolunteerId) OR admin full control
       allow update: if (
         isOwner(resource.data.requesterId) &&
         isActiveUser() &&
@@ -164,10 +162,8 @@ service cloud.firestore {
 
     // --- VOLUNTEERS COLLECTION SECURITY ---
     match /volunteers/{userId} {
-      // Volunteer profile owner or admin can read
       allow read: if isSignedIn() && (isOwner(userId) || isAdmin());
 
-      // Active citizen can apply as a volunteer matching their auth UID, defaulting to PENDING and isActive = false
       allow create: if isActiveUser() &&
         isOwner(userId) &&
         request.resource.data.userId == request.auth.uid &&
@@ -176,8 +172,6 @@ service cloud.firestore {
         request.resource.data.approvedBy == null &&
         request.resource.data.approvedAt == null;
 
-      // Volunteer owner can update contact details, location, skills, or availabilityStatus
-      // Protected fields (verificationStatus, isActive, approvedBy, approvedAt, userId, createdAt) are locked for non-admins
       allow update: if (
         isOwner(userId) &&
         isActiveUser() &&
@@ -206,8 +200,36 @@ service cloud.firestore {
 
     // --- NOTIFICATIONS COLLECTION SECURITY ---
     match /notifications/{notificationId} {
-      allow read: if isSignedIn() && (resource.data.recipientUid == request.auth.uid || resource.data.recipientUid == 'PUBLIC');
-      allow create, update, delete: if isAdmin();
+      // Recipient or admin can read notifications
+      allow read: if isSignedIn() && (
+        (resource != null && resource.data.recipientId == request.auth.uid) ||
+        isAdmin()
+      );
+
+      // Only Admins can create targeted notifications
+      allow create: if isAdmin() &&
+        request.resource.data.createdBy == request.auth.uid;
+
+      // Recipient can update only read-state fields (isRead, readAt) on their own notification
+      // Admins have full update authorization
+      allow update: if (
+        isSignedIn() &&
+        resource.data.recipientId == request.auth.uid &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+          'recipientId',
+          'title',
+          'message',
+          'notificationType',
+          'relatedEntityType',
+          'relatedEntityId',
+          'priority',
+          'createdBy',
+          'createdAt'
+        ])
+      ) || isAdmin();
+
+      // Only Admins can delete notifications
+      allow delete: if isAdmin();
     }
 
 
