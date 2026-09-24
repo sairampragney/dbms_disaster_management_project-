@@ -23,6 +23,10 @@ import { MyEmergencyRequestsPage } from './pages/MyEmergencyRequestsPage';
 import { EmergencyRequestDetailPage } from './pages/EmergencyRequestDetailPage';
 import { AdminEmergencyRequestsPage } from './pages/admin/AdminEmergencyRequestsPage';
 import { AdminEmergencyRequestDetailPage } from './pages/admin/AdminEmergencyRequestDetailPage';
+import { SafeLocationsPage } from './pages/SafeLocationsPage';
+import { SafeLocationDetailPage } from './pages/SafeLocationDetailPage';
+import { AdminSafeLocationsPage } from './pages/admin/AdminSafeLocationsPage';
+import { AdminSafeLocationDetailPage } from './pages/admin/AdminSafeLocationDetailPage';
 
 const PlaceholderPage = ({ title }: { title: string }) => (
   <div className="max-w-4xl mx-auto px-4 py-16 text-center space-y-4">
@@ -49,7 +53,11 @@ export const AppRouter: React.FC = () => {
             <Route path="about" element={<PlaceholderPage title="About Platform" />} />
             <Route path="alerts" element={<AlertsPage />} />
             <Route path="alerts/:alertId" element={<AlertDetailPage />} />
-            <Route path="safe-locations" element={<PlaceholderPage title="Safe Locations & Shelters" />} />
+
+            {/* Safe Locations Public / Citizen Routes */}
+            <Route path="safe-locations" element={<SafeLocationsPage />} />
+            <Route path="safe-locations/:locationId" element={<SafeLocationDetailPage />} />
+
             <Route path="emergency" element={<CreateEmergencyRequestPage />} />
             <Route path="login" element={<LoginPage />} />
             <Route path="register" element={<RegisterPage />} />
@@ -188,6 +196,22 @@ export const AppRouter: React.FC = () => {
               element={
                 <RoleRoute allowedRoles={['ADMIN']}>
                   <AdminEmergencyRequestDetailPage />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="admin/safe-locations"
+              element={
+                <RoleRoute allowedRoles={['ADMIN']}>
+                  <AdminSafeLocationsPage />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="admin/safe-locations/:locationId"
+              element={
+                <RoleRoute allowedRoles={['ADMIN']}>
+                  <AdminSafeLocationDetailPage />
                 </RoleRoute>
               }
             />

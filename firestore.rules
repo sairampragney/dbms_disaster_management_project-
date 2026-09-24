@@ -102,14 +102,12 @@ service cloud.firestore {
 
     // --- EMERGENCY REQUESTS COLLECTION SECURITY ---
     match /emergencyRequests/{requestId} {
-      // Requester, assigned volunteer, or admin can read emergency requests
       allow read: if isSignedIn() && (
         (resource != null && isOwner(resource.data.requesterId)) ||
         (resource != null && resource.data.assignedVolunteerId == request.auth.uid) ||
         isAdmin()
       );
 
-      // Active citizen can create an emergency request bound to their UID with initial status PENDING
       allow create: if isActiveUser() &&
         request.resource.data.requesterId == request.auth.uid &&
         request.resource.data.status == 'PENDING' &&
@@ -117,9 +115,6 @@ service cloud.firestore {
         request.resource.data.resolvedAt == null &&
         request.resource.data.resolutionNotes == null;
 
-      // Citizen can cancel their own request if status is PENDING or ACKNOWLEDGED
-      // They cannot alter requesterId, assignedVolunteerId, or resolution metadata
-      // Admins have full authorization to acknowledge, assign, respond, and resolve
       allow update: if (
         isOwner(resource.data.requesterId) &&
         isActiveUser() &&
@@ -134,17 +129,30 @@ service cloud.firestore {
         ])
       ) || isAdmin();
 
-      // Deleting emergency request documents is restricted to Admins
+      allow delete: if isAdmin();
+    }
+
+
+    // --- SAFE LOCATIONS COLLECTION SECURITY ---
+    match /safeLocations/{locationId} {
+      // Unauthenticated users and citizens can read active public safe locations
+      // Admins can read all safe locations (active or inactive)
+      allow read: if (resource != null && resource.data.get('isActive', true) == true) || isAdmin();
+
+      // Only Admins can create safe locations
+      allow create: if isAdmin() &&
+        request.resource.data.createdBy == request.auth.uid;
+
+      // Only Admins can update safe locations; createdBy and createdAt cannot be altered
+      allow update: if isAdmin() &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['createdBy', 'createdAt']);
+
+      // Only Admins can delete safe locations
       allow delete: if isAdmin();
     }
 
 
     // --- PLACEHOLDER RESTRICTIVE RULES FOR FUTURE COLLECTIONS ---
-
-    match /safeLocations/{locationId} {
-      allow read: if true;
-      allow create, update, delete: if isAdmin();
-    }
 
     match /volunteers/{userId} {
       allow read: if isSignedIn() && (isOwner(userId) || isAdmin());
