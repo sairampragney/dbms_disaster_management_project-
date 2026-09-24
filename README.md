@@ -10,7 +10,7 @@
 
 ---
 
-## Key Features Implemented (Phases 1 - 7)
+## Key Features Implemented (Phases 1 - 8)
 
 - **Phase 1 (Foundation):** React + Vite + TypeScript, React Router, Tailwind CSS design system, and initial Firebase SDK integration configured for project `disaster-management-syst-ca22d` and Local Emulator Suite.
 - **Phase 2 (Authentication):** Firebase Authentication with Email/Password, persistence, profile synchronization (`users/{uid}`), protected routes, password reset, and registration role locking (`CITIZEN`).
@@ -19,6 +19,7 @@
 - **Phase 5 (Incident Reporting):** Citizen incident reporting form (`/incidents/report`), personal incident tracking (`/my-incidents`), incident detail page (`/incidents/:incidentId`), Admin incident verification dashboard (`/admin/incidents`), Admin verification & resolution details (`/admin/incidents/:incidentId`), and strict Firestore security rules protecting reporter identity, status transitions (`REPORTED` -> `VERIFIED` -> `IN_PROGRESS` -> `RESOLVED` / `DISMISSED`), and verification metadata.
 - **Phase 6 (Emergency Requests):** Citizen emergency request form (`/emergency-requests/new`), personal emergency assistance tracking (`/my-emergency-requests`), request detail view (`/emergency-requests/:requestId`), citizen cancellation rules (`PENDING`/`ACKNOWLEDGED` -> `CANCELLED`), Admin emergency request queue (`/admin/emergency-requests`), Admin detail management & volunteer assignment (`/admin/emergency-requests/:requestId`), and strict Firestore security rules protecting requester ownership, status workflow (`PENDING` -> `ACKNOWLEDGED` -> `ASSIGNED` -> `IN_PROGRESS` -> `RESOLVED`), and volunteer assignment locks.
 - **Phase 7 (Safe Locations):** Public/citizen safe locations directory (`/safe-locations`), location detail view (`/safe-locations/:locationId`), Google Maps directions URL builder, emergency service badges, Admin safe location management portal (`/admin/safe-locations`), Admin creation and editing (`/admin/safe-locations/:locationId`), soft deactivation/reactivation (`isActive`), and strict Firestore security rules protecting inactive records and administrative fields (`createdBy`, `createdAt`).
+- **Phase 8 (Volunteers & Community Response):** Citizen volunteer registration application (`/volunteer/apply`), volunteer command dashboard (`/volunteer/dashboard`), volunteer profile management (`/volunteer/profile`), volunteer task assignment dispatch feed (`/volunteer/tasks`), task acceptance/rejection/start response controls (`/volunteer/tasks/:requestId`), Admin volunteer management registry (`/admin/volunteers`), Admin review and verification approval/suspension (`/admin/volunteers/:uid`), and strict Firestore Security Rules enforcing `isApprovedVolunteer` checks, self-application default locking (`PENDING`, `isActive: false`), assigned task protection, and immutable verification fields.
 
 ---
 
@@ -77,10 +78,10 @@ npm run emulators
 | `users/{uid}` | User profiles containing contact details, Indian address fields, and role (`CITIZEN`, `VOLUNTEER`, `ADMIN`). |
 | `alerts/{alertId}` | Disaster advisories published by administrators. |
 | `incidents/{incidentId}` | Incident reports submitted by citizens with verification status (`REPORTED`, `VERIFIED`, `IN_PROGRESS`, `RESOLVED`, `DISMISSED`). |
-| `emergencyRequests/{requestId}` | Assistance requests logged by citizens with priority and lifecycle (`PENDING` -> `ACKNOWLEDGED` -> `ASSIGNED` -> `IN_PROGRESS` -> `RESOLVED` / `CANCELLED`). |
+| `emergencyRequests/{requestId}` | Assistance requests logged by citizens with priority, assigned volunteer UID, and lifecycle (`PENDING` -> `ACKNOWLEDGED` -> `ASSIGNED` -> `IN_PROGRESS` -> `RESOLVED` / `CANCELLED`). |
 | `safeLocations/{locationId}` | Evacuation centers, shelters, hospitals, police/fire stations with availability (`AVAILABLE`, `LIMITED`, `FULL`, `CLOSED`), services, and capacity. |
-| `volunteers/{uid}` | Volunteer profiles with skills, availability, and verification status. |
-| `responses/{responseId}` | Volunteer assignments connecting responders to requests. |
+| `volunteers/{uid}` | Volunteer profiles with skills, availability (`AVAILABLE`, `BUSY`, `UNAVAILABLE`), verification status (`PENDING`, `APPROVED`, `REJECTED`, `SUSPENDED`), and active state. |
+| `responses/{responseId}` | Volunteer assignments connecting responders to emergency requests. |
 | `notifications/{notificationId}` | In-app alerts and notifications. |
 | `auditLogs/{logId}` | Administrative action logs for security auditing. |
 

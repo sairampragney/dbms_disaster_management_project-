@@ -36,8 +36,11 @@ service cloud.firestore {
       return isSignedIn() && (getUserRole() == 'VOLUNTEER' || getUserRole() == 'ADMIN');
     }
 
-    function isCitizen() {
-      return isActiveUser();
+    function isApprovedVolunteer() {
+      return isVolunteer() &&
+        exists(/databases/$(database)/documents/volunteers/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/volunteers/$(request.auth.uid)).data.get('verificationStatus', 'PENDING') == 'APPROVED' &&
+        get(/databases/$(database)/documents/volunteers/$(request.auth.uid)).data.get('isActive', false) == true;
     }
 
 
@@ -75,7 +78,7 @@ service cloud.firestore {
       allow read: if isSignedIn() && (
         (resource != null && isOwner(resource.data.reporterId)) ||
         isAdmin() ||
-        isVolunteer()
+        isApprovedVolunteer()
       );
 
       allow create: if isActiveUser() &&
@@ -102,6 +105,7 @@ service cloud.firestore {
 
     // --- EMERGENCY REQUESTS COLLECTION SECURITY ---
     match /emergencyRequests/{requestId} {
+      // Requester, assigned approved volunteer, or admin can read
       allow read: if isSignedIn() && (
         (resource != null && isOwner(resource.data.requesterId)) ||
         (resource != null && resource.data.assignedVolunteerId == request.auth.uid) ||
@@ -115,6 +119,7 @@ service cloud.firestore {
         request.resource.data.resolvedAt == null &&
         request.resource.data.resolutionNotes == null;
 
+      // Citizen requester cancellation OR assigned approved volunteer status update (without changing assignedVolunteerId) OR admin full control
       allow update: if (
         isOwner(resource.data.requesterId) &&
         isActiveUser() &&
@@ -127,6 +132,16 @@ service cloud.firestore {
           'resolutionNotes',
           'createdAt'
         ])
+      ) || (
+        isApprovedVolunteer() &&
+        resource.data.assignedVolunteerId == request.auth.uid &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+          'requesterId',
+          'assignedVolunteerId',
+          'resolutionNotes',
+          'resolvedAt',
+          'createdAt'
+        ])
       ) || isAdmin();
 
       allow delete: if isAdmin();
@@ -135,52 +150,73 @@ service cloud.firestore {
 
     // --- SAFE LOCATIONS COLLECTION SECURITY ---
     match /safeLocations/{locationId} {
-      // Unauthenticated users and citizens can read active public safe locations
-      // Admins can read all safe locations (active or inactive)
       allow read: if (resource != null && resource.data.get('isActive', true) == true) || isAdmin();
 
-      // Only Admins can create safe locations
       allow create: if isAdmin() &&
         request.resource.data.createdBy == request.auth.uid;
 
-      // Only Admins can update safe locations; createdBy and createdAt cannot be altered
       allow update: if isAdmin() &&
         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['createdBy', 'createdAt']);
 
-      // Only Admins can delete safe locations
       allow delete: if isAdmin();
     }
 
 
-    // --- PLACEHOLDER RESTRICTIVE RULES FOR FUTURE COLLECTIONS ---
-
+    // --- VOLUNTEERS COLLECTION SECURITY ---
     match /volunteers/{userId} {
+      // Volunteer profile owner or admin can read
       allow read: if isSignedIn() && (isOwner(userId) || isAdmin());
-      allow create: if isActiveUser() && isOwner(userId);
+
+      // Active citizen can apply as a volunteer matching their auth UID, defaulting to PENDING and isActive = false
+      allow create: if isActiveUser() &&
+        isOwner(userId) &&
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.verificationStatus == 'PENDING' &&
+        request.resource.data.isActive == false &&
+        request.resource.data.approvedBy == null &&
+        request.resource.data.approvedAt == null;
+
+      // Volunteer owner can update contact details, location, skills, or availabilityStatus
+      // Protected fields (verificationStatus, isActive, approvedBy, approvedAt, userId, createdAt) are locked for non-admins
       allow update: if (
         isOwner(userId) &&
         isActiveUser() &&
-        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['verified'])
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+          'userId',
+          'verificationStatus',
+          'isActive',
+          'approvedBy',
+          'approvedAt',
+          'createdAt'
+        ])
       ) || isAdmin();
+
       allow delete: if isAdmin();
     }
 
+
+    // --- RESPONSES COLLECTION SECURITY ---
     match /responses/{responseId} {
       allow read: if isSignedIn() && (isOwner(resource.data.volunteerId) || isAdmin());
-      allow create: if isVolunteer() && request.resource.data.volunteerId == request.auth.uid;
-      allow update: if isVolunteer() && isOwner(resource.data.volunteerId);
+      allow create: if isApprovedVolunteer() && request.resource.data.volunteerId == request.auth.uid;
+      allow update: if isApprovedVolunteer() && isOwner(resource.data.volunteerId);
       allow delete: if isAdmin();
     }
 
+
+    // --- NOTIFICATIONS COLLECTION SECURITY ---
     match /notifications/{notificationId} {
       allow read: if isSignedIn() && (resource.data.recipientUid == request.auth.uid || resource.data.recipientUid == 'PUBLIC');
       allow create, update, delete: if isAdmin();
     }
 
+
+    // --- AUDIT LOGS COLLECTION SECURITY ---
     match /auditLogs/{logId} {
       allow read: if isAdmin();
       allow create, update, delete: if false;
     }
+
 
     match /{document=**} {
       allow read, write: if false;

@@ -27,6 +27,13 @@ import { SafeLocationsPage } from './pages/SafeLocationsPage';
 import { SafeLocationDetailPage } from './pages/SafeLocationDetailPage';
 import { AdminSafeLocationsPage } from './pages/admin/AdminSafeLocationsPage';
 import { AdminSafeLocationDetailPage } from './pages/admin/AdminSafeLocationDetailPage';
+import { VolunteerApplyPage } from './pages/VolunteerApplyPage';
+import { VolunteerDashboardPage } from './pages/VolunteerDashboardPage';
+import { VolunteerProfilePage } from './pages/VolunteerProfilePage';
+import { VolunteerTasksPage } from './pages/VolunteerTasksPage';
+import { VolunteerTaskDetailPage } from './pages/VolunteerTaskDetailPage';
+import { AdminVolunteersPage } from './pages/admin/AdminVolunteersPage';
+import { AdminVolunteerDetailPage } from './pages/admin/AdminVolunteerDetailPage';
 
 const PlaceholderPage = ({ title }: { title: string }) => (
   <div className="max-w-4xl mx-auto px-4 py-16 text-center space-y-4">
@@ -139,22 +146,64 @@ export const AppRouter: React.FC = () => {
               }
             />
 
+            {/* Citizen Volunteer Application Route */}
+            <Route
+              path="volunteer/apply"
+              element={
+                <ProtectedRoute>
+                  <VolunteerApplyPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Approved Volunteer Routes */}
+            <Route
+              path="volunteer"
+              element={
+                <RoleRoute allowedRoles={['VOLUNTEER', 'ADMIN']}>
+                  <VolunteerDashboardPage />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="volunteer/dashboard"
+              element={
+                <RoleRoute allowedRoles={['VOLUNTEER', 'ADMIN']}>
+                  <VolunteerDashboardPage />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="volunteer/profile"
+              element={
+                <RoleRoute allowedRoles={['VOLUNTEER', 'ADMIN']}>
+                  <VolunteerProfilePage />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="volunteer/tasks"
+              element={
+                <RoleRoute allowedRoles={['VOLUNTEER', 'ADMIN']}>
+                  <VolunteerTasksPage />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="volunteer/tasks/:requestId"
+              element={
+                <RoleRoute allowedRoles={['VOLUNTEER', 'ADMIN']}>
+                  <VolunteerTaskDetailPage />
+                </RoleRoute>
+              }
+            />
+
             <Route
               path="notifications"
               element={
                 <ProtectedRoute>
                   <PlaceholderPage title="In-App Notifications" />
                 </ProtectedRoute>
-              }
-            />
-
-            {/* Volunteer Protected Routes */}
-            <Route
-              path="volunteer"
-              element={
-                <RoleRoute allowedRoles={['VOLUNTEER', 'ADMIN']}>
-                  <PlaceholderPage title="Volunteer Portal" />
-                </RoleRoute>
               }
             />
 
@@ -212,6 +261,22 @@ export const AppRouter: React.FC = () => {
               element={
                 <RoleRoute allowedRoles={['ADMIN']}>
                   <AdminSafeLocationDetailPage />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="admin/volunteers"
+              element={
+                <RoleRoute allowedRoles={['ADMIN']}>
+                  <AdminVolunteersPage />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="admin/volunteers/:uid"
+              element={
+                <RoleRoute allowedRoles={['ADMIN']}>
+                  <AdminVolunteerDetailPage />
                 </RoleRoute>
               }
             />

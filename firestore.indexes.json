@@ -41,6 +41,14 @@
       ]
     },
     {
+      "collectionGroup": "emergencyRequests",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "assignedVolunteerId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "safeLocations",
       "queryScope": "COLLECTION",
       "fields": [
@@ -63,6 +71,14 @@
       "fields": [
         { "fieldPath": "isActive", "order": "ASCENDING" },
         { "fieldPath": "availabilityStatus", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "volunteers",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "verificationStatus", "order": "ASCENDING" },
         { "fieldPath": "createdAt", "order": "DESCENDING" }
       ]
     }
