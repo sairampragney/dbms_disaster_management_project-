@@ -15,6 +15,7 @@ import {
   LOCATION_TYPE_LABELS,
   LOCATION_SERVICE_LABELS,
 } from '../../types/safeLocation';
+import { INDIAN_STATES_AND_UTS, isValidPincode, isValidIndianPhone } from '../../constants/indiaData';
 import {
   ArrowLeft,
   Building2,
@@ -132,8 +133,13 @@ export const AdminSafeLocationDetailPage: React.FC = () => {
       return;
     }
 
-    if (!formData.pincode.trim() || !/^\d{6}$/.test(formData.pincode.trim())) {
+    if (!isValidPincode(formData.pincode)) {
       setError('Please enter a valid 6-digit Indian PIN Code.');
+      return;
+    }
+
+    if (formData.contactPhone && !isValidIndianPhone(formData.contactPhone)) {
+      setError('Please enter a valid 10-digit Indian phone number (e.g. +91 98765 43210).');
       return;
     }
 
@@ -401,14 +407,16 @@ export const AdminSafeLocationDetailPage: React.FC = () => {
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">State</label>
-              <input
-                type="text"
+              <select
                 name="state"
                 value={formData.state}
                 onChange={handleChange}
-                required
-                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500"
-              />
+                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+              >
+                {INDIAN_STATES_AND_UTS.map((st) => (
+                  <option key={st} value={st}>{st}</option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">PIN Code</label>

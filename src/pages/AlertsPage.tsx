@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { getPublicAlerts } from '../services/alertService';
 import { Alert, DisasterType, AlertSeverity, DISASTER_TYPE_LABELS } from '../types/alert';
 import { AlertCard } from '../components/alerts/AlertCard';
+import { INDIAN_STATES_AND_UTS } from '../constants/indiaData';
 import { AlertTriangle, Filter, RefreshCw, AlertCircle } from 'lucide-react';
 
 export const AlertsPage: React.FC = () => {
@@ -106,14 +107,9 @@ export const AlertsPage: React.FC = () => {
               className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-sky-500 bg-white"
             >
               <option value="ALL">All States</option>
-              <option value="Telangana">Telangana</option>
-              <option value="Andhra Pradesh">Andhra Pradesh</option>
-              <option value="Karnataka">Karnataka</option>
-              <option value="Tamil Nadu">Tamil Nadu</option>
-              <option value="Maharashtra">Maharashtra</option>
-              <option value="Kerala">Kerala</option>
-              <option value="Delhi">Delhi</option>
-              <option value="West Bengal">West Bengal</option>
+              {INDIAN_STATES_AND_UTS.map((st) => (
+                <option key={st} value={st}>{st}</option>
+              ))}
             </select>
           </div>
         </div>

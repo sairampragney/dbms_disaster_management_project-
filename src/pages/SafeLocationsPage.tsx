@@ -10,6 +10,7 @@ import {
   AVAILABILITY_COLORS,
   getDirectionsUrl,
 } from '../types/safeLocation';
+import { INDIAN_STATES_AND_UTS } from '../constants/indiaData';
 import {
   MapPin,
   Building2,
@@ -145,13 +146,16 @@ export const SafeLocationsPage: React.FC = () => {
 
           <div>
             <label className="block text-[11px] font-semibold text-slate-500 mb-1">State</label>
-            <input
-              type="text"
-              placeholder="e.g. Telangana"
+            <select
               value={stateFilter}
               onChange={(e) => setStateFilter(e.target.value)}
-              className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"
-            />
+              className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+            >
+              <option value="">All States</option>
+              {INDIAN_STATES_AND_UTS.map((st) => (
+                <option key={st} value={st}>{st}</option>
+              ))}
+            </select>
           </div>
 
           <div>

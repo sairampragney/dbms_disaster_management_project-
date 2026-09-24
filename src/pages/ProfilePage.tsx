@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { doc, updateDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useAuth } from '../context/AuthContext';
+import { INDIAN_STATES_AND_UTS, isValidPincode, isValidIndianPhone } from '../constants/indiaData';
 import { User, Mail, Phone, MapPin, Shield, CheckCircle2, AlertCircle, Save } from 'lucide-react';
 
 export const ProfilePage: React.FC = () => {
@@ -52,7 +53,12 @@ export const ProfilePage: React.FC = () => {
       return;
     }
 
-    if (!formData.pincode.trim() || !/^\d{6}$/.test(formData.pincode.trim())) {
+    if (formData.phone && !isValidIndianPhone(formData.phone)) {
+      setError('Please enter a valid 10-digit Indian phone number (e.g., +91 98765 43210).');
+      return;
+    }
+
+    if (!isValidPincode(formData.pincode)) {
       setError('Please enter a valid 6-digit PIN Code (e.g., 500072).');
       return;
     }
@@ -190,15 +196,9 @@ export const ProfilePage: React.FC = () => {
                 onChange={handleChange}
                 className="w-full px-3 py-2 text-xs sm:text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none bg-white"
               >
-                <option value="Telangana">Telangana</option>
-                <option value="Andhra Pradesh">Andhra Pradesh</option>
-                <option value="Karnataka">Karnataka</option>
-                <option value="Tamil Nadu">Tamil Nadu</option>
-                <option value="Maharashtra">Maharashtra</option>
-                <option value="Delhi">Delhi</option>
-                <option value="Kerala">Kerala</option>
-                <option value="West Bengal">West Bengal</option>
-                <option value="Other">Other</option>
+                {INDIAN_STATES_AND_UTS.map((st) => (
+                  <option key={st} value={st}>{st}</option>
+                ))}
               </select>
             </div>
 

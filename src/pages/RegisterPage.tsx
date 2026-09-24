@@ -4,6 +4,7 @@ import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc, Timestamp } from 'firebase/firestore';
 import { auth, db } from '../config/firebase';
 import { UserProfile } from '../types/auth';
+import { INDIAN_STATES_AND_UTS, isValidPincode, isValidIndianPhone } from '../constants/indiaData';
 import { User, Mail, Lock, Phone, MapPin, AlertCircle, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 
 export const RegisterPage: React.FC = () => {
@@ -32,13 +33,13 @@ export const RegisterPage: React.FC = () => {
   const validate = (): string | null => {
     if (!formData.fullName.trim()) return 'Full Name is required.';
     if (!formData.email.trim() || !/\S+@\S+\.\S+/.test(formData.email)) return 'Please enter a valid email address.';
-    if (!formData.phone.trim() || !/^\+?91?[6-9]\d{9}$/.test(formData.phone.replace(/[\s-]/g, ''))) {
+    if (!isValidIndianPhone(formData.phone)) {
       return 'Please enter a valid 10-digit Indian phone number (e.g., +91 98765 43210).';
     }
     if (formData.password.length < 6) return 'Password must be at least 6 characters long.';
     if (formData.password !== formData.confirmPassword) return 'Passwords do not match.';
     if (!formData.city.trim()) return 'City is required.';
-    if (!formData.pincode.trim() || !/^\d{6}$/.test(formData.pincode.trim())) {
+    if (!isValidPincode(formData.pincode)) {
       return 'Please enter a valid 6-digit PIN Code (e.g., 500072).';
     }
     return null;
@@ -251,15 +252,9 @@ export const RegisterPage: React.FC = () => {
                 onChange={handleChange}
                 className="w-full px-3 py-2 text-xs sm:text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none bg-white"
               >
-                <option value="Telangana">Telangana</option>
-                <option value="Andhra Pradesh">Andhra Pradesh</option>
-                <option value="Karnataka">Karnataka</option>
-                <option value="Tamil Nadu">Tamil Nadu</option>
-                <option value="Maharashtra">Maharashtra</option>
-                <option value="Delhi">Delhi</option>
-                <option value="Kerala">Kerala</option>
-                <option value="West Bengal">West Bengal</option>
-                <option value="Other">Other</option>
+                {INDIAN_STATES_AND_UTS.map((st) => (
+                  <option key={st} value={st}>{st}</option>
+                ))}
               </select>
             </div>
 

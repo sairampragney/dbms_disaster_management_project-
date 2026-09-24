@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { createIncident } from '../services/incidentService';
 import { IncidentType, IncidentSeverity, INCIDENT_TYPE_LABELS } from '../types/incident';
+import { INDIAN_STATES_AND_UTS, isValidPincode } from '../constants/indiaData';
 import { AlertCircle, CheckCircle2, PhoneCall, ShieldAlert, MapPin, Send } from 'lucide-react';
 
 export const ReportIncidentPage: React.FC = () => {
@@ -44,7 +45,7 @@ export const ReportIncidentPage: React.FC = () => {
       return;
     }
 
-    if (!formData.pincode.trim() || !/^\d{6}$/.test(formData.pincode.trim())) {
+    if (!isValidPincode(formData.pincode)) {
       setError('Please enter a valid 6-digit Indian PIN Code (e.g. 500072).');
       return;
     }
@@ -225,14 +226,16 @@ export const ReportIncidentPage: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">State</label>
-                <input
-                  type="text"
+                <select
                   name="state"
                   value={formData.state}
                   onChange={handleChange}
-                  required
-                  className="w-full px-3 py-2 text-xs sm:text-sm border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-sky-500"
-                />
+                  className="w-full px-3 py-2 text-xs sm:text-sm border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-sky-500 bg-white"
+                >
+                  {INDIAN_STATES_AND_UTS.map((st) => (
+                    <option key={st} value={st}>{st}</option>
+                  ))}
+                </select>
               </div>
 
               <div>

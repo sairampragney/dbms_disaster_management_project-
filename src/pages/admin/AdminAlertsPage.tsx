@@ -5,6 +5,7 @@ import { Alert, DisasterType, AlertSeverity, AlertStatus, DISASTER_TYPE_LABELS }
 import { collection, getDocs, query, orderBy, limit, Timestamp } from 'firebase/firestore';
 import { db } from '../../config/firebase';
 import { AlertBadge } from '../../components/alerts/AlertBadge';
+import { INDIAN_STATES_AND_UTS } from '../../constants/indiaData';
 import { Plus, RefreshCw, X, ShieldCheck } from 'lucide-react';
 
 export const AdminAlertsPage: React.FC = () => {
@@ -338,13 +339,15 @@ export const AdminAlertsPage: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">State</label>
-                  <input
-                    type="text"
+                  <select
                     value={formData.state}
                     onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                    required
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-sky-500"
-                  />
+                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-sky-500 bg-white"
+                  >
+                    {INDIAN_STATES_AND_UTS.map((st) => (
+                      <option key={st} value={st}>{st}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
