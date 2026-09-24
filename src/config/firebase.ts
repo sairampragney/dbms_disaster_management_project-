@@ -4,12 +4,12 @@ import { getFirestore, connectFirestoreEmulator, Firestore } from 'firebase/fire
 import { getStorage, connectStorageEmulator, FirebaseStorage } from 'firebase/storage';
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'demo-api-key',
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyAyTebpXjPCM47SemUHXVi0WdBTKq1UDWA',
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'disaster-management-syst-ca22d.firebaseapp.com',
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'disaster-management-syst-ca22d',
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'disaster-management-syst-ca22d.appspot.com',
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '1234567890',
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:1234567890:web:abcdef123456',
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'disaster-management-syst-ca22d.firebasestorage.app',
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '84009572084',
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:84009572084:web:848db92a106d8cf9f2eef8',
 };
 
 const app: FirebaseApp = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
